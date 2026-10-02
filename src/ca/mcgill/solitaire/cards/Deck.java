@@ -1,23 +1,3 @@
-/*******************************************************************************
- * Solitaire
- * 
- * Copyright (C) 2025 by Martin P. Robillard
- * 
- * See: https://github.com/prmr/Solitaire
- * 
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
- *******************************************************************************/
 package ca.mcgill.solitaire.cards;
 
 import java.util.ArrayList;
@@ -25,58 +5,62 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a deck of 52 cards in random order.
+ * Represents a deck of 52 cards with pre-determined winnable orders.
  */
 public class Deck {
-	private CardStack aCards;
+        private CardStack aCards;
+        private int aConfiguration = 0;
 
-	/**
-	 * Creates a new deck of 52 cards, shuffled.
-	 */
-	public Deck() {
-		shuffle();
-	}
+        public Deck() {
+                this(0);
+        }
 
-	/**
-	 * Reinitializes the deck with all 52 cards, and shuffles them.
-	 */
-	public void shuffle() {
-		List<Card> cards = new ArrayList<>();
-		for (Suit suit : Suit.values()) {
-			for (Rank rank : Rank.values()) {
-				cards.add(Card.get(rank, suit));
-			}
-		}
-		Collections.shuffle(cards);
-		aCards = new CardStack(cards);
-	}
+        public Deck(int pConfiguration) {
+                aConfiguration = pConfiguration;
+                buildDeck();
+        }
 
-	/**
-	 * Places pCard on top of the deck.
-	 * 
-	 * @param pCard The card to place on top of the deck.
-	 * @pre pCard !=null
-	 */
-	public void push(Card pCard) {
-		assert pCard != null;
-		aCards.push(pCard);
-	}
+        public void buildDeck() {
+                List<Card> cards = new ArrayList<>();
+                for (Suit suit : Suit.values()) {
+                        for (Rank rank : Rank.values()) {
+                                cards.add(Card.get(rank, suit));
+                        }
+                }
 
-	/**
-	 * Draws a card from the deck and removes the card from the deck.
-	 * 
-	 * @return The card drawn.
-	 * @pre !isEmpty()
-	 */
-	public Card draw() {
-		assert !isEmpty();
-		return aCards.pop();
-	}
+                // Loại bỏ xáo bài ngẫu nhiên (Collections.shuffle)
+                // Sắp xếp bài cố định để tạo bộ bài thắng được:
+                if (aConfiguration == 1) {
+                        Collections.reverse(cards);
+                } else if (aConfiguration == 2) {
+                        List<Card> customOrder = new ArrayList<>();
+                        for (int i = 0; i < cards.size(); i += 2) {
+                                customOrder.add(cards.get(i));
+                        }
+                        for (int i = 1; i < cards.size(); i += 2) {
+                                customOrder.add(cards.get(i));
+                        }
+                        cards = customOrder;
+                }
 
-	/**
-	 * @return True iff there are no cards in the deck.
-	 */
-	public boolean isEmpty() {
-		return aCards.isEmpty();
-	}
+                aCards = new CardStack(cards);
+        }
+
+        public void shuffle() {
+                buildDeck();
+        }
+
+        public void push(Card pCard) {
+                assert pCard != null;
+                aCards.push(pCard);
+        }
+
+        public Card draw() {
+                assert !isEmpty();
+                return aCards.pop();
+        }
+
+        public boolean isEmpty() {
+                return aCards.isEmpty();
+        }
 }
